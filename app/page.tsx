@@ -3,45 +3,41 @@ import { useState, useMemo } from 'react';
 import productsData from '../products.json';
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   category: string;
-  categoryDisplay: string;
-  emoji: string;
   price: number;
   originalPrice: number;
   discount: number;
   rating: number;
-  sold: number;
-  shopeeLink: string;
+  sold: string;
+  image: string;
+  link: string;
 }
 
 const formatPrice = (price: number) => `Rp${price.toLocaleString('id-ID')}`;
-const formatSold = (sold: number) => sold >= 1000 ? `${(sold/1000).toFixed(1)}rb` : sold.toString();
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   
-  const products = productsData.products as Product[];
+  const products = productsData as Product[];
   
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const catMatch = activeCategory === 'all' || p.category === activeCategory;
       const searchMatch = !searchQuery || 
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.categoryDisplay.toLowerCase().includes(searchQuery.toLowerCase());
+        p.category.toLowerCase().includes(searchQuery.toLowerCase());
       return catMatch && searchMatch;
     });
   }, [activeCategory, searchQuery, products]);
 
   const handleProductClick = (product: Product) => {
-    // Track click (analytics)
     if (typeof window !== 'undefined') {
       console.log('Click:', product.name);
     }
-    // Open Shopee link
-    window.open(product.shopeeLink, '_blank');
+    window.open(product.link, '_blank');
   };
 
   const categories = [
@@ -138,15 +134,22 @@ export default function Home() {
               className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition cursor-pointer group"
             >
               {/* Image */}
-              <div className="aspect-square bg-gradient-to-br from-orange-100 to-red-100 relative flex items-center justify-center">
-                <span className="text-6xl group-hover:scale-110 transition">{product.emoji}</span>
+              <div className="aspect-square bg-gradient-to-br from-orange-100 to-red-100 relative flex items-center justify-center overflow-hidden">
+                <img 
+                  src={product.image} 
+                  alt={product.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
                 {product.discount > 0 && (
                   <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                     -{product.discount}%
                   </span>
                 )}
-                <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                  {product.categoryDisplay}
+                <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded uppercase">
+                  {product.category}
                 </span>
               </div>
 
@@ -163,7 +166,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center justify-between text-xs text-gray-600">
                   <span>⭐ {product.rating}</span>
-                  <span>Terjual {formatSold(product.sold)}</span>
+                  <span>Terjual {product.sold}</span>
                 </div>
                 <button className="w-full mt-2 bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 rounded-lg text-xs font-bold hover:opacity-90">
                   🛒 Beli Sekarang
